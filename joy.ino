@@ -14,9 +14,12 @@ const double K = 0.05;
 const int Xzero = 500;
 const int Yzero = 507;
 
-const int ClickDelay = 10;
-int clickd = 0;
-int cstate = 0;
+/* How many cycles we should wait?
+* And how long one cycle lasts? */
+const int DEBOUNCE = 100;
+
+int waitSelect = 0;
+int lastSelect = HIGH;
 // Also connect the joystick VCC to Arduino 5V, and joystick GND to Arduino GND.
 
 // This sketch outputs serial data at 9600 baud (open Serial Monitor to view).
@@ -52,26 +55,16 @@ void loop()
   mouseReport.x = (horizontal-Xzero)*K;
   mouseReport.y = -(vertical-Yzero)*K;
 
-  mouseReport.buttons = cstate;
-  if (clickd == 0) {
-    if(select == LOW) {
-      if (cstate == 0) {
-          clickd = ClickDelay;   
-      }
-      mouseReport.buttons = 1;
-      cstate = 1;
-    } else {
-      if (cstate == 1) {
-          clickd = ClickDelay;   
-      }
-      mouseReport.buttons = 0;
-      cstate = 0;
-    }
-  } else {
-    clickd--;
+  /* Handle state of select */
+  if (waitSelect > 0) { // it could be bouncing
+	waitSelect -= 1; // therefore do nothing this time
+  } else if (lastSelect !== select) { // Select is not bouncing and has changed
+	if (select == LOW) mouseReport.buttons = 1;
+	if (select == HIGH) mouseReport.buttons = 0;
+	lastSelect = select;
+	waitSelect = DEBOUNCE;
   }
 
   Serial.write((uint8_t *)&mouseReport, 4);
   Serial.write((uint8_t *)&nullReport, 4);
-  
 }  
