@@ -10,13 +10,14 @@
 const int VERT = 0; // analog
 const int HORIZ = 1; // analog
 const int SEL = 2; // digital
-const double K = 0.05;
+const double K = 0.02;
+const double K2 = 1.4;
 const int Xzero = 500;
 const int Yzero = 507;
 
 /* How many cycles we should wait?
 * And how long one cycle lasts? */
-const int DEBOUNCE = 100;
+const int DEBOUNCE = 10;
 
 int waitSelect = 0;
 int lastSelect = HIGH;
@@ -51,16 +52,34 @@ void loop()
   vertical = analogRead(VERT); // will be 0-1023
   horizontal = analogRead(HORIZ); // will be 0-1023
   select = digitalRead(SEL); // will be HIGH (1) if not pressed, and LOW (0) if pressed
+
+  int moveX = horizontal-Xzero, moveY = -(vertical-Yzero);
+
+  if (moveX >= 0) {
+    mouseReport.x = pow(moveX*K, K2);  
+  } else {
+    mouseReport.x = -pow(abs(moveX*K), K2);  
+  }
+
+  if (moveY >= 0) {
+    mouseReport.y = pow(moveY*K, K2);  
+  } else {
+    mouseReport.y = -pow(abs(moveY*K), K2);  
+  }
   
-  mouseReport.x = (horizontal-Xzero)*K;
-  mouseReport.y = -(vertical-Yzero)*K;
 
   /* Handle state of select */
   if (waitSelect > 0) { // it could be bouncing
 	waitSelect -= 1; // therefore do nothing this time
-  } else if (lastSelect !== select) { // Select is not bouncing and has changed
-	if (select == LOW) mouseReport.buttons = 1;
-	if (select == HIGH) mouseReport.buttons = 0;
+  } else if (lastSelect != select) { // Select is not bouncing and has changed
+	if (select == LOW) {
+	  mouseReport.buttons = 1;
+    nullReport[0] = 1;
+	}
+	if (select == HIGH) {
+	  mouseReport.buttons = 0;
+    nullReport[0] = 0;
+	}
 	lastSelect = select;
 	waitSelect = DEBOUNCE;
   }
