@@ -1,9 +1,19 @@
 # mouse-stick
 
 ```bash
-sudo dfu-programmer atmega16u2 flash --debug 1 Arduino-mouse-0.1.hex
+brew install dfu-programmer
+```
 
+```bash
+
+tar -xvf arduino-firmware
+
+# make arduino mouse
+sudo dfu-programmer atmega16u2 flash --debug 1 arduino-firmware/Arduino-mouse-0.1.hex
+
+# clear bootloader
 sudo dfu-programmer atmega16u2 erase
 
-sudo dfu-programmer atmega16u2 flash --debug 1 Arduino-usbserial-uno.hex
+# make arduino programmable
+sudo dfu-programmer atmega16u2 flash --debug 1 arduino-firmware/Arduino-usbserial-uno.hex
 ```
